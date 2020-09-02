@@ -1311,7 +1311,7 @@ int LibHWAudio::recvAudioData(int channel, char *pBuf, int iLength, int *iActLen
         }
         registerWrite(AUDIO_DEVS::DDR_TAIL_IN1 + channel * 12, (ddr_tail + len) & 0x3FFFFFF);
         totalRead += len;
-        total_read[channel] +=len;
+
     }
     *iActLen = totalRead;
     return 0;
@@ -1452,6 +1452,7 @@ int LibHWAudio::recvAudioFile(int iChannel, const char *strFile, int sec)
         recvAudioData(iChannel, arr, bufSize, &len);
         write(fp, arr, len);
         tolRead += len;
+        total_read[iChannel] +=len;
     }
 
     m_stRecvFileStatus[iChannel].iActOperLen += tolRead;
@@ -1578,7 +1579,7 @@ int LibHWAudio::recvAudioContinueFile(int iChannel)
         recvAudioData(iChannel, arr, bufSize, &len);
         write(fd, arr, len);
         tolRead += len;
-        printf("%s__[%d][%d][%d][%d][%d]\n", __FUNCTION__, gettid(), total_read, tolRead, length, m_stRecvFileStatus[iChannel].iActOperLen);
+        total_read[iChannel] +=len;
     }
     m_stRecvFileStatus[iChannel].iActOperLen += tolRead;
 
