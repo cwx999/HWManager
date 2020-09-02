@@ -1,0 +1,1 @@
+cmd_/home/pxie/HWManager/Driver/Audio/xdma_aud.ko := ld -r -m elf_x86_64 -z max-page-size=0x200000 -T ./scripts/module-common.lds --build-id  -o /home/pxie/HWManager/Driver/Audio/xdma_aud.ko /home/pxie/HWManager/Driver/Audio/xdma_aud.o /home/pxie/HWManager/Driver/Audio/xdma_aud.mod.o ;  true

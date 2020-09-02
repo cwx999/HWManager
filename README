@@ -1,0 +1,8 @@
+BIN： 本地调测软件目录，运行该目录下HWDemo.sh脚本即可执行调测软件
+Doc： Lib软件对外接口说明文档，描述接口信息
+Driver：驱动软件，加载xdma.ko
+Lib:  Lib库位置
+HWDemo：调测软件工程目录
+LibHWAio：AIO卡工程目录
+LibHWAudio： Audio卡工程目录
+LibHWDio：DIO卡工程目录
