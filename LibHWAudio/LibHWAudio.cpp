@@ -374,7 +374,8 @@ int LibHWAudio::getAudioInputChannelInfo(uint32_t channel, AudInChlInfo *info)
     if(((pause >> channel) & 0x01) ==1) {
         info->status = PAUSE;
     }
-    else if(total_read[channel] > 0 && total_read[channel] < m_stRecvFileStatus[channel].iTotalLength) {
+    else if(total_read[channel] > 0 && total_read[channel] < m_stRecvFileStatus[channel].iTotalLength
+            && m_stRecvFileStatus[channel].getAvalidLen() > 0) {
         info->status = COLLECTION;
     }
     else {
@@ -1311,7 +1312,6 @@ int LibHWAudio::recvAudioData(int channel, char *pBuf, int iLength, int *iActLen
         }
         registerWrite(AUDIO_DEVS::DDR_TAIL_IN1 + channel * 12, (ddr_tail + len) & 0x3FFFFFF);
         totalRead += len;
-
     }
     *iActLen = totalRead;
     return 0;
@@ -1513,7 +1513,6 @@ int LibHWAudio::sendAudioContinueFile(int iChannel)
         totalTrans += len)
     {
         sendAudioData(iChannel, arr, len, &iActLen);
-        printf("%s_______ \n", __FUNCTION__);
     }
     m_stSendFileStatus[iChannel].iActOperLen += totalTrans;
 
@@ -1521,9 +1520,7 @@ int LibHWAudio::sendAudioContinueFile(int iChannel)
     close(fd_out);
     return status;
 }
-#include <unistd.h>
-#include <sys/syscall.h>
-#define gettid() syscall(__NR_gettid)
+
 int LibHWAudio::recvAudioContinueFile(int iChannel)
 {
     int status = 0;

@@ -1,3 +1,3 @@
-/home/pxie/HWManager/Driver/AioDio/xdma_ad.ko
-/home/pxie/HWManager/Driver/AioDio/xpdma_driver.o
+/home/fengyang/HWManager/Driver/AioDio/xdma_ad.ko
+/home/fengyang/HWManager/Driver/AioDio/xpdma_driver.o
 
