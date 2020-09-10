@@ -112,6 +112,9 @@ public:
     int getOutputMode() const;
     int recvAudioUniqueContinueFile(int iChannel);
     int sendAudioUniqueContinueFile(int iChannel);
+    ///
+    int setAudioOutputAutoCfg(int channel, AudOutCfg* cfg);
+    int sendAudioFileAutoCfg(int iChannel, const char* strFile);
 private:
     void setSendTransStatus(int iChannel, int isPause);
     void setRecvTransStatus(int iChannel, int isPause);

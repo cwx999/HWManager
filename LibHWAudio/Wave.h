@@ -68,6 +68,7 @@ public:
     char *GetFileName(const char* fullPathName);
 
     int offsetToData(int* fp);
+    int getWavHeadInfo(int *fp, Wav *wav);
 
 private:
 

@@ -359,6 +359,7 @@ int LibHWAudio::getAudioInputChannelInfo(uint32_t channel, AudInChlInfo *info)
     info->en = iEn >> channel & 0x01;
     info->atten = (uint16_t)registerRead(AUDIO_DEVS::IN_ATTEN);
     samp = registerRead(AUDIO_DEVS::ADC_REG_DATA);
+    info->adc_status = registerRead(AUDIO_DEVS::IN_ADC_STATUS);
     if(samp == 0x2237){
         info->sampling = 48000;
     }
@@ -1615,6 +1616,90 @@ int LibHWAudio::sendAudioUniqueContinueFile(int iChannel)
         return -1;
     status = sendAudioContinueFile(iChannel);
     m_sendlock[iChannel].clear();
+    return status;
+}
+
+int LibHWAudio::setAudioOutputAutoCfg(int channel, AudOutCfg *cfg)
+{
+    int ret = 0;
+    float coef_div = 1.0;
+    coef_div = cfg->out_coef;
+    float mult_coef = 0.0;
+    int reg_data = 0x200F;
+    setOutputEnable(channel, 0, 1);
+    setOutputAMP(channel, cfg->amp);
+    mult_coef = regReadFloat(AUDIO_DEVS::OUT_MULT_COEF1 + channel * 4);
+    mult_coef = (float)(0x80000000) * coef_div;
+    regWriteFloat(AUDIO_DEVS::OUT_MULT_COEF1 + channel * 4, mult_coef);
+    registerWrite(AUDIO_DEVS::DAC_REG_DATA0 + (channel >> 1) * 8, reg_data);
+    registerWrite(AUDIO_DEVS::DAC_REG_TRIG0 + (channel >> 1) * 8, 1);
+    return ret;
+}
+
+int LibHWAudio::sendAudioFileAutoCfg(int iChannel, const char *strFile)
+{
+    int status = 0;
+    total_write[iChannel] = 0;
+    olen_avail[iChannel] = 0;
+
+    int fd_out = open(strFile, O_RDWR | O_SYNC, 0666);
+    if(fd_out < 0)
+    {
+        printf("open error\n");
+        return OPEN_ERR;
+    }
+    //cfg
+    Wav wav;
+    status = wave->getWavHeadInfo(&fd_out, &wav);
+    if(status < 0){
+        printf("open error\n");
+        return OPEN_ERR;
+    }
+    setOutputEnable(iChannel, 0, (wav.fmt.NumChannels -1));
+    setOutputMode(iChannel, wav.fmt.NumChannels-1);
+    if(wav.fmt.AudioFormat == 1)
+        setOutptDataType(iChannel, true);
+    switch(wav.fmt.SampleRate) {
+    case 48000:
+        registerWrite(AUDIO_DEVS::OUT_SAMMPLE_RATE0 + (iChannel >>1) * 4, 0);
+        break;
+    case 96000:
+        registerWrite(AUDIO_DEVS::OUT_SAMMPLE_RATE0 + (iChannel >>1) * 4, 1);
+        break;
+    case 192000:
+        registerWrite(AUDIO_DEVS::OUT_SAMMPLE_RATE0 + (iChannel >>1) * 4, 2);
+        break;
+    default:
+        break;
+    }
+    setOutputEnable(iChannel, 1, wav.fmt.NumChannels-1);
+        //
+    ///Suspend false
+    setAudioOutputSuspend(iChannel, 0);
+    ///文件大小
+    long maxLend = lseek(fd_out, 0, SEEK_END);
+    ///偏移数据区
+    wave->offsetToData(&fd_out);
+    ///文件头部大小
+    long headLen = lseek(fd_out, 0, SEEK_CUR);
+
+    m_stSendFileStatus[iChannel].strFile = std::string(strFile);
+    m_stSendFileStatus[iChannel].iActOperLen = headLen;
+    m_stSendFileStatus[iChannel].iTotalLength = maxLend;
+
+    char *arr  = (char *) malloc(204800);
+    int len = 0;
+    int iActLen = 0;
+    int totalTrans = 0;
+    for(;(len = read(fd_out, arr, 204800)) != 0
+        && getSendTransStatus(iChannel) == DevTransStatus::DATA_IDLE;
+        totalTrans += len)
+    {
+        sendAudioData(iChannel, arr, len, &iActLen);
+    }
+    m_stSendFileStatus[iChannel].iActOperLen += totalTrans;
+    free(arr);
+    close(fd_out);
     return status;
 }
 

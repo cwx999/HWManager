@@ -50,6 +50,7 @@ typedef struct _AudChlInfo{
   int total_len;
   char filename[64];
   ChlStatus status;
+  int adc_status;
 } AudInChlInfo, AudOutChlInfo;
 
 typedef struct _AudInCfg
@@ -63,6 +64,7 @@ typedef struct _AudOutCfg
     uint32_t regData;
     float out_coef;
     SAMPLING_RATE rate;
+    int amp;
 } AudOutCfg;
 #ifdef __cplusplus
 extern "C" {

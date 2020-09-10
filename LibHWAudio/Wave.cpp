@@ -324,3 +324,15 @@ int Wave::offsetToData(int *fp)
         lseek(*fp, 8, SEEK_CUR);
     }
 }
+
+int Wave::getWavHeadInfo(int *fp, Wav *wav)
+{
+    if (fp == NULL)
+        return -1;
+    lseek(*fp, 0x14, SEEK_SET);
+    read (*fp, &wav->fmt.AudioFormat, sizeof(uint16_t));
+    read(*fp, &wav->fmt.NumChannels, sizeof(uint16_t));
+    read(*fp, &wav->fmt.SampleRate, sizeof(uint32_t));
+    lseek(*fp, 0, SEEK_SET);
+    return 0;
+}
